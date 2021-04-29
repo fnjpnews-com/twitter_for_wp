@@ -126,6 +126,7 @@ class twitter_for_wp_main
                     unset($show_text["tweet"]["list"][$i]);
                 }
             }
+            update_option('showtext_options', $show_text);
         }
         if ($_GET['oauth_verifier']) {
             $oauthToken = $_SESSION['oauth_token'];
