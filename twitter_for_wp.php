@@ -30,7 +30,16 @@ class twitter_for_wp_main
     {
         add_menu_page('twitter for wp', 'twitter for wp',  'level_8', __FILE__, array($this, 'show_text_option_page'), '', 26);
     }
-
+    function debug_add($id){
+        $opt = get_option('showtext_options');
+        $show_text = isset($opt) ? $opt : null;
+        $show_text["tweet"]["num"]++;
+        $num =  $show_text["tweet"]["num"];
+        $show_text["tweet"]["list"][$num]["id"] = $id;
+        $show_text["tweet"]["list"][$num]["time"] = time();
+        unset($show_text["tweet"]["list"][$num - 10]);
+        update_option('showtext_options', $show_text);
+    }
     function on_post_publish($id, $post)
     {
         $opt = get_option('showtext_options');
@@ -101,6 +110,14 @@ class twitter_for_wp_main
 <p>oauth_token：<?php echo $show_text["oauth_token"] ?></p>
 <p>oauth_token_secret：<?php echo $show_text["oauth_token_secret"] ?></p>
 <?php
+
+
+if (isset($_POST['showtext_options'])) {
+    $opt = $_POST['showtext_options'];
+    update_option('showtext_options', $opt);
+    _e('保存しました');
+}
+
         if ($show_text["tweet"]["num"] != null) {
             echo "<h2>捕捉中のツイート</h2>";
             foreach ($show_text["tweet"]["list"] as $tweet) {
@@ -134,13 +151,6 @@ class twitter_for_wp_main
             );
 
             echo '<a href=' . $url . '><input type="submit" name="Submit" class="button-primary" value="TwitterLogin"></a>';
-        }
-
-
-        if (isset($_POST['showtext_options'])) {
-            $opt = $_POST['showtext_options'];
-            update_option('showtext_options', $opt);
-            _e('保存しました');
         }
 
 
