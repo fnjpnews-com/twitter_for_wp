@@ -30,7 +30,16 @@ class twitter_for_wp_main
     {
         add_menu_page('twitter for wp', 'twitter for wp',  'level_8', __FILE__, array($this, 'show_text_option_page'), '', 26);
     }
-
+    function debug_add($id){
+        $opt = get_option('showtext_options');
+        $show_text = isset($opt) ? $opt : null;
+        $show_text["tweet"]["num"]++;
+        $num =  $show_text["tweet"]["num"];
+        $show_text["tweet"]["list"][$num]["id"] = $id;
+        $show_text["tweet"]["list"][$num]["time"] = time();
+        unset($show_text["tweet"]["list"][$num - 10]);
+        update_option('showtext_options', $show_text);
+    }
     function on_post_publish($id, $post)
     {
         $opt = get_option('showtext_options');
@@ -76,39 +85,16 @@ class twitter_for_wp_main
     }
     function show_text_option_page()
     {
-
-        function get_text()
-        {
-            $opt = get_option('showtext_options');
-            return isset($opt) ? $opt : null;
-        }
-
         wp_nonce_field('shoptions');
         $opt = get_option('showtext_options');
         $show_text = isset($opt) ? $opt : null;
 
-?>
-<h2>twitterapi設定</h2>
-<form action="" method="post">
-    <input name="showtext_options[consumerKey]" type="text" id="inputtext" placeholder="consumerKey"
-        value="<?php echo $show_text["consumerKey"] ?>" />
-    <input name="showtext_options[consumerSecrect]" type="text" id="inputtext" placeholder="consumerSecrect"
-        value="<?php echo $show_text["consumerSecrect"] ?>" />
-    <p>Callback URL：<?php echo plugin_dir_url(__FILE__) . "login/login.php" ?></p>
-    <input type="submit" name="Submit" class="button-primary" value="変更を保存" />
-</form>
-<h2>ログイン情報</h2>
-<p>oauth_token：<?php echo $show_text["oauth_token"] ?></p>
-<p>oauth_token_secret：<?php echo $show_text["oauth_token_secret"] ?></p>
-<?php
-        if ($show_text["tweet"]["num"] != null) {
-            echo "<h2>捕捉中のツイート</h2>";
-            foreach ($show_text["tweet"]["list"] as $tweet) {
-                echo '<p style="margin: 0px;">TweetID：' . $tweet["id"] . "</p>";
-                echo '<p style="margin-top: 0px;">RT：' . $tweet["rt"] . "</p>";
-            }
+
+        if (isset($_POST['showtext_options'])) {
+            $opt = $_POST['showtext_options'];
+            update_option('showtext_options', $opt);
+            _e('保存しました');
         }
-        echo "<p>" . json_encode($show_text) . "</p>";
 
 
         if ($show_text["consumerKey"] and $show_text["consumerSecrect"]) {
@@ -132,18 +118,16 @@ class twitter_for_wp_main
                     'oauth_token' => $requestToken['oauth_token']
                 ]
             );
-
-            echo '<a href=' . $url . '><input type="submit" name="Submit" class="button-primary" value="TwitterLogin"></a>';
         }
-
-
-        if (isset($_POST['showtext_options'])) {
-            $opt = $_POST['showtext_options'];
-            update_option('showtext_options', $opt);
-            _e('保存しました');
+        
+        if (isset($_POST['remove_id'])) {
+            foreach ($show_text["tweet"]["list"] as $i => $tweet){
+                if($tweet["id"] == $_POST['remove_id']){
+                    unset($show_text["tweet"]["list"][$i]);
+                }
+            }
+            update_option('showtext_options', $show_text);
         }
-
-
         if ($_GET['oauth_verifier']) {
             $oauthToken = $_SESSION['oauth_token'];
             $oauthTokenSecret = $_SESSION['oauth_token_secret'];
@@ -171,16 +155,56 @@ class twitter_for_wp_main
 
 
             $userInfo = $userConnect->get('account/verify_credentials');
-
             if (isset($userInfo->id_str)) {
                 $show_text["oauth_token"] = $accessToken['oauth_token'];
                 $show_text["oauth_token_secret"] = $accessToken['oauth_token_secret'];
+                $show_text["id_str"] = $userInfo->id_str;
                 update_option('showtext_options', $show_text);
                 _e('ログインに成功しました');
             } else {
                 _e('ログインに失敗しました');
             }
         }
+
+        ?>
+        <h2>twitterapi設定</h2>
+        <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+        <form action="" method="post">
+            <input name="showtext_options[consumerKey]" type="text" id="inputtext" placeholder="consumerKey"
+                value="<?php echo $show_text["consumerKey"] ?>" />
+            <input name="showtext_options[consumerSecrect]" type="text" id="inputtext" placeholder="consumerSecrect"
+                value="<?php echo $show_text["consumerSecrect"] ?>" />
+            <p>Callback URL：<?php echo plugin_dir_url(__FILE__) . "login/login.php" ?></p>
+            <input type="submit" name="Submit" class="button-primary" value="変更を保存" />
+        </form>
+        <h2>ログイン情報</h2>
+        <p>oauth_token：<?php echo $show_text["oauth_token"] ?></p>
+        <p>oauth_token_secret：<?php echo $show_text["oauth_token_secret"] ?></p>
+        <?php
+        
+        if ($show_text["tweet"]["num"] != null) {
+            echo "<h2>捕捉中のツイート</h2>";
+            foreach ($show_text["tweet"]["list"] as $tweet) {
+                echo '<blockquote class="twitter-tweet"><a href="https://twitter.com/' .$show_text["id_str"] . '/status/' . $tweet["id"] . '"></a></blockquote>';
+                echo '<p style="margin-top: 0px;">最終取得時のRT数：' . $tweet["rt"] . "</p>";
+                ?>
+                    <form action="" method="post">
+                        <input name="remove_id" type="hidden" id="inputtext" placeholder="consumerSecrect"
+                        value="<?php echo $tweet["id"] ?>" />
+                        <input type="submit" name="Submit" class="button-primary" value="削除" />
+                    </form>
+                <?php
+
+                echo '<p>----------------------------------------------------------------------------------------------------</p>';
+                echo '<p>----------------------------------------------------------------------------------------------------</p>';
+            }
+        }
+        if ($show_text["consumerKey"] and $show_text["consumerSecrect"]) {
+            echo '<a href=' . $url . '><input type="submit" name="Submit" class="button-primary" value="TwitterLogin"></a>';
+        }
+        
+        echo "<p>" . json_encode($show_text) . "</p>";
+        
     }
     function my_activation()
     {
