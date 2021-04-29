@@ -85,7 +85,6 @@ class twitter_for_wp_main
     }
     function show_text_option_page()
     {
-
         wp_nonce_field('shoptions');
         $opt = get_option('showtext_options');
         $show_text = isset($opt) ? $opt : null;
@@ -179,9 +178,9 @@ class twitter_for_wp_main
         if ($show_text["tweet"]["num"] != null) {
             echo "<h2>捕捉中のツイート</h2>";
             foreach ($show_text["tweet"]["list"] as $tweet) {
-                echo '<p style="margin: 0px;">TweetID：' . $tweet["id"] . "</p>";
-                echo '<blockquote class="twitter-tweet"><a href="https://twitter.com/' . $data["in_reply_to_screen_name"] . '/status/' . $tweet["id"] . '"></a></blockquote>';
-                echo '<p style="margin-top: 0px;">RT：' . $tweet["rt"] . "</p>";
+                echo '<blockquote class="twitter-tweet"><a href="https://twitter.com/' .$show_text["id_str"] . '/status/' . $tweet["id"] . '"></a></blockquote>';
+                echo '<p style="margin-top: 0px;">最終取得時のRT数：' . $tweet["rt"] . "</p>";
+                echo '<p>-----</p>';
             }
         }
         if ($show_text["consumerKey"] and $show_text["consumerSecrect"]) {
