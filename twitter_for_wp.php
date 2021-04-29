@@ -119,8 +119,14 @@ class twitter_for_wp_main
                 ]
             );
         }
-
-
+        
+        if (isset($_POST['remove_id'])) {
+            foreach ($show_text["tweet"]["list"] as $i => $tweet){
+                if($tweet["id"] == $_POST['remove_id']){
+                    unset($show_text["tweet"]["list"][$i]);
+                }
+            }
+        }
         if ($_GET['oauth_verifier']) {
             $oauthToken = $_SESSION['oauth_token'];
             $oauthTokenSecret = $_SESSION['oauth_token_secret'];
@@ -180,7 +186,16 @@ class twitter_for_wp_main
             foreach ($show_text["tweet"]["list"] as $tweet) {
                 echo '<blockquote class="twitter-tweet"><a href="https://twitter.com/' .$show_text["id_str"] . '/status/' . $tweet["id"] . '"></a></blockquote>';
                 echo '<p style="margin-top: 0px;">最終取得時のRT数：' . $tweet["rt"] . "</p>";
-                echo '<p>-----</p>';
+                ?>
+                    <form action="" method="post">
+                        <input name="remove_id" type="hidden" id="inputtext" placeholder="consumerSecrect"
+                        value="<?php echo $tweet["id"] ?>" />
+                        <input type="submit" name="Submit" class="button-primary" value="削除" />
+                    </form>
+                <?php
+
+                echo '<p>----------------------------------------------------------------------------------------------------</p>';
+                echo '<p>----------------------------------------------------------------------------------------------------</p>';
             }
         }
         if ($show_text["consumerKey"] and $show_text["consumerSecrect"]) {
