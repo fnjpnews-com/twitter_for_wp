@@ -149,10 +149,10 @@ class twitter_for_wp_main
 
 
             $userInfo = $userConnect->get('account/verify_credentials');
-
             if (isset($userInfo->id_str)) {
                 $show_text["oauth_token"] = $accessToken['oauth_token'];
                 $show_text["oauth_token_secret"] = $accessToken['oauth_token_secret'];
+                $show_text["id_str"] = $userInfo->id_str;
                 update_option('showtext_options', $show_text);
                 _e('ログインに成功しました');
             } else {
