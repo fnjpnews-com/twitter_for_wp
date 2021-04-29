@@ -86,46 +86,16 @@ class twitter_for_wp_main
     function show_text_option_page()
     {
 
-        function get_text()
-        {
-            $opt = get_option('showtext_options');
-            return isset($opt) ? $opt : null;
-        }
-
         wp_nonce_field('shoptions');
         $opt = get_option('showtext_options');
         $show_text = isset($opt) ? $opt : null;
 
-?>
-<h2>twitterapi設定</h2>
-<form action="" method="post">
-    <input name="showtext_options[consumerKey]" type="text" id="inputtext" placeholder="consumerKey"
-        value="<?php echo $show_text["consumerKey"] ?>" />
-    <input name="showtext_options[consumerSecrect]" type="text" id="inputtext" placeholder="consumerSecrect"
-        value="<?php echo $show_text["consumerSecrect"] ?>" />
-    <p>Callback URL：<?php echo plugin_dir_url(__FILE__) . "login/login.php" ?></p>
-    <input type="submit" name="Submit" class="button-primary" value="変更を保存" />
-</form>
-<h2>ログイン情報</h2>
-<p>oauth_token：<?php echo $show_text["oauth_token"] ?></p>
-<p>oauth_token_secret：<?php echo $show_text["oauth_token_secret"] ?></p>
-<?php
 
-
-if (isset($_POST['showtext_options'])) {
-    $opt = $_POST['showtext_options'];
-    update_option('showtext_options', $opt);
-    _e('保存しました');
-}
-
-        if ($show_text["tweet"]["num"] != null) {
-            echo "<h2>捕捉中のツイート</h2>";
-            foreach ($show_text["tweet"]["list"] as $tweet) {
-                echo '<p style="margin: 0px;">TweetID：' . $tweet["id"] . "</p>";
-                echo '<p style="margin-top: 0px;">RT：' . $tweet["rt"] . "</p>";
-            }
+        if (isset($_POST['showtext_options'])) {
+            $opt = $_POST['showtext_options'];
+            update_option('showtext_options', $opt);
+            _e('保存しました');
         }
-        echo "<p>" . json_encode($show_text) . "</p>";
 
 
         if ($show_text["consumerKey"] and $show_text["consumerSecrect"]) {
@@ -149,8 +119,6 @@ if (isset($_POST['showtext_options'])) {
                     'oauth_token' => $requestToken['oauth_token']
                 ]
             );
-
-            echo '<a href=' . $url . '><input type="submit" name="Submit" class="button-primary" value="TwitterLogin"></a>';
         }
 
 
@@ -191,6 +159,37 @@ if (isset($_POST['showtext_options'])) {
                 _e('ログインに失敗しました');
             }
         }
+
+        ?>
+        <h2>twitterapi設定</h2>
+        <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+        <form action="" method="post">
+            <input name="showtext_options[consumerKey]" type="text" id="inputtext" placeholder="consumerKey"
+                value="<?php echo $show_text["consumerKey"] ?>" />
+            <input name="showtext_options[consumerSecrect]" type="text" id="inputtext" placeholder="consumerSecrect"
+                value="<?php echo $show_text["consumerSecrect"] ?>" />
+            <p>Callback URL：<?php echo plugin_dir_url(__FILE__) . "login/login.php" ?></p>
+            <input type="submit" name="Submit" class="button-primary" value="変更を保存" />
+        </form>
+        <h2>ログイン情報</h2>
+        <p>oauth_token：<?php echo $show_text["oauth_token"] ?></p>
+        <p>oauth_token_secret：<?php echo $show_text["oauth_token_secret"] ?></p>
+        <?php
+        
+        if ($show_text["tweet"]["num"] != null) {
+            echo "<h2>捕捉中のツイート</h2>";
+            foreach ($show_text["tweet"]["list"] as $tweet) {
+                echo '<p style="margin: 0px;">TweetID：' . $tweet["id"] . "</p>";
+                echo '<blockquote class="twitter-tweet"><a href="https://twitter.com/' . $data["in_reply_to_screen_name"] . '/status/' . $tweet["id"] . '"></a></blockquote>';
+                echo '<p style="margin-top: 0px;">RT：' . $tweet["rt"] . "</p>";
+            }
+        }
+        if ($show_text["consumerKey"] and $show_text["consumerSecrect"]) {
+            echo '<a href=' . $url . '><input type="submit" name="Submit" class="button-primary" value="TwitterLogin"></a>';
+        }
+        
+        echo "<p>" . json_encode($show_text) . "</p>";
+        
     }
     function my_activation()
     {
